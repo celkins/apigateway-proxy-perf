@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: celkins
+    Description: >
+      The name of the GitHub user or organization who owns the repository
+
+  GitHubRepo:
+    Type: String
+    Default: hello-boot
+    Description: The name of the repository for the service
+
+  GitHubBranch:
+    Type: String
+    Default: master
+    Description: The branch of the repository to deploy
+
+  GitHubToken:
+    Type: String
+    Description: >
+      The access token to use when accessing the repository (https://github.com/settings/tokens)
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      GitHubOwner:
+        default: "Owner"
+      GitHubRepo:
+        default: "Repository"
+      GitHubBranch:
+        default: "Branch"
+      GitHubToken:
+        default: "Access Token"
+    ParameterGroups:
+      - Label:
+          default: GitHub Configuration
+        Parameters:
+          - GitHubOwner
+          - GitHubRepo
+          - GitHubBranch
+          - GitHubToken
+
+Resources:
+  Cluster:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./templates/ecs-cluster.yaml
+      Parameters:
+        SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+
+  DeploymentPipeline:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./templates/deployment-pipeline.yaml
+      Parameters:
+        Cluster: !GetAtt Cluster.Outputs.ClusterName
+        GitHubOwner: !Ref GitHubOwner
+        GitHubRepo: !Ref GitHubRepo
+        GitHubBranch: !Ref GitHubBranch
+        GitHubToken: !Ref GitHubToken
+        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        TemplateBucket: !Sub apigateway-proxy-perf-${AWS::Region}
+
+  LoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./templates/load-balancer.yaml
+      Parameters:
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./templates/vpc.yaml
+      Parameters:
+        Name: !Ref AWS::StackName
+        VpcCIDR: 10.215.0.0/16
+        Subnet1CIDR: 10.215.10.0/24
+        Subnet2CIDR: 10.215.20.0/24
+
+Outputs:
+  ServiceUrl:
+    Description: The sample service that is being continuously deployed.
+    Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
+
+  PipelineUrl:
+    Description: The continuous deployment pipeline in the AWS Management Console.
+    Value: !GetAtt DeploymentPipeline.Outputs.PipelineUrl
