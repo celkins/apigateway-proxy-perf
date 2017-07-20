@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.celkins.apigateway-proxy-perf</groupId>
+    <artifactId>gatling</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gatling.version>2.2.5</gatling.version>
+        <gatling-maven-plugin.version>2.2.4</gatling-maven-plugin.version>
+        <scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>${scala-maven-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>${gatling-maven-plugin.version}</version>
+                <configuration>
+                    <!--<configFolder>src/test/gatling/conf</configFolder>-->
+                    <!--<dataFolder>src/test/gatling/user-files/data</dataFolder>-->
+                    <!--<resultsFolder>target/gatling/results/${maven.build.timestamp}/</resultsFolder>-->
+                    <!--<bodiesFolder>src/test/gatling/user-files/bodies</bodiesFolder>-->
+                    <!--<simulationsFolder>src/test/gatling/user-files/simulations</simulationsFolder>-->
+                    <!-- If uncommented, these arguments below will be applied to all your gatling tests -->
+                    <!--<jvmArgs>
+                        <jvmArg>-Dusers=100</jvmArg>
+                        <jvmArg>-Dramp=1</jvmArg>
+                    </jvmArgs>-->
+                    <!--
+                    This will run multiple simulations one by one. Useful when doing Gatling
+                    tests in CI.
+                    -->
+                    <runMultipleSimulations>true</runMultipleSimulations>
+                    <!--
+                    To run only one simulation, you need to disable the "runMultipleSimulations"
+                    above, and write the name of your simulation below.
+                    -->
+                    <!--<simulationClass>WriteTheNameOfYourGatlingSimulation</simulationClass>-->
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
