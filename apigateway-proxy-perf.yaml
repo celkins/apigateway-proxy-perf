@@ -44,6 +44,14 @@ Metadata:
           - GitHubToken
 
 Resources:
+  API:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./templates/api-gateway.yaml
+      Parameters:
+        Name: !Ref AWS::StackName
+        TargetServiceUri: !GetAtt LoadBalancer.Outputs.ServiceUrl
+
   Cluster:
     Type: AWS::CloudFormation::Stack
     Properties:

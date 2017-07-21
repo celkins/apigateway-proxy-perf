@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Name:
+    Type: String
+
+  TargetServiceUri:
+    Type: String
+
+Resources:
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref Name
+
+  HttpResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: 'http'
+
+  HttpResourceANY:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref HttpResource
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      Integration: 
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: ANY
+        PassthroughBehavior: WHEN_NO_MATCH
+        Uri: !Ref TargetServiceUri
+
+  HttpProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref HttpResource
+      PathPart: '{proxy+}'
+
+  HttpProxyResourceANY:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref HttpProxyResource
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      RequestParameters:
+        method.request.path.proxy: true
+      Integration: 
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: ANY
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+        Uri: !Sub ${TargetServiceUri}/{proxy}
